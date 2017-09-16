@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         mToolbar = (Toolbar) findViewById(R.id.action_settings);
 //        setSupportActionBar(mToolbar);
 
-        getGeofencePendingIntent();
+//        getGeofencePendingIntent();
 
         mSettingButton = (Button) findViewById(R.id.setting);
         mSettingButton.setOnClickListener(new View.OnClickListener() {

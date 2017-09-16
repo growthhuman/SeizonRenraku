@@ -3,10 +3,12 @@ package jp.techacademy.original.seizonrenraku;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
-import android.provider.SyncStateContract;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
@@ -25,7 +27,10 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -33,47 +38,74 @@ import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, OnCompleteListener<Void> {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, OnCompleteListener<Void>, GoogleMap.OnMapLongClickListener {
+
+    private static final String TAG = "MapsActivity";
+
+    //Preferenceの変数
+    private SharedPreferences mPreference;
+
+    //経度と緯度
+    private double latitude;
+    private double longitude;
+
+    //Geofenceの設定 半径は100m
     public static final float GEOFENCE_RADIUS_IN_METERS = 100;
     private static final int PERMISSIONS_REQUEST_CODE = 34;
 
+    //For this sample, geofences expire after twelve hours.
     private static final long GEOFENCE_EXPIRATION_IN_HOURS = 12;
-
-    /**
-     * For this sample, geofences expire after twelve hours.
-     */
     static final long GEOFENCE_EXPIRATION_IN_MILLISECONDS =
             GEOFENCE_EXPIRATION_IN_HOURS * 60 * 60 * 1000;
 
     private FusedLocationProviderClient mFusedLocationClient;
     private GeofencingClient mGeofencingClient;
     private GoogleMap mMap;
-
-    private double latitude;
-    private double longtitude;
+    private LatLng lastCurrentLocation;
 
     private ArrayList<Geofence> mGeofenceList = new ArrayList<>();
     private PendingIntent mGeofencePendingIntent;
+    private Marker marker;
+    private Circle circle;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        //---------------------------------------------------------------------------------------
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        //---------------------------------------------------------------------------------------
+        //SharedPreferencesクラスのオブジェクトを取得
+        mPreference = PreferenceManager.getDefaultSharedPreferences(this);
+        //ToDo 緯度と経度がPreferenceから取得できなかった時の初期値をGoogle Mapを参考にして設定する。
+        latitude  = mPreference.getFloat("Latitude", (float) 0.0);
+        longitude = mPreference.getFloat("Longitude", (float) 0.0);
+
+        //GeofencingClientのインスタンスを取得
         mGeofencingClient = LocationServices.getGeofencingClient(this);
 
+        //ToDo　これはうえで設定しても良いのでは？
         mGeofencePendingIntent = null;
 
+        //ToDo あとで消すこと。
+        Log.d(TAG, "onCreate 1");
 
-        Log.d("imabayashi", "onCreate 1");
-        getLastLocation();
+        //ToDo あとで消すか考える
+        getLastCuurentLocation();
+
+        //ToDo　そもそもジオフェンスを最初から設定するのがいけてないかも。
+        //Geofenceを作成する
         makeGeofence();
+
+        //GeofencingClientからIntentServiceへリクエスト
         addGeofences();
 
     }
@@ -91,28 +123,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        //ここで最初にgoogleMapを生成。Map関連の処理はすべてこの後でやること
         mMap = googleMap;
+        mMap.setOnMapLongClickListener(this);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-            Log.d("imabayashi", "onMapReady OK");
+            Log.d(TAG, "onMapReady OK");
         } else {
             // Show rationale and request permission.
             requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_CODE);
             mMap.setMyLocationEnabled(true);
-            Log.d("imabayashi", "onMapReady NG");
+            getLastCuurentLocation();
+            Log.d(TAG, "onMapReady NG");
         }
 
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public void getLastLocation() {
+    public void getLastCuurentLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
         } else {
             // Show rationale and request permission.
             requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_CODE);
-            Log.d("imabayashi", "getLastLocation NG");
+            Log.d(TAG, "getLastLocation NG");
         }
 
         //最後に持っていた場所を取得して表示する。
@@ -126,63 +161,63 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             //Get the latitude, in degrees.
                             //Get the longitude, in degrees.
                             latitude = location.getLatitude();
-                            longtitude = location.getLongitude();
+                            longitude = location.getLongitude();
 
-                            LatLng currentLocation = new LatLng( 35.5289819, 139.6857912);
-//                            LatLng currentLocation = new LatLng(latitude, longtitude);
+//                            currentLocation = new LatLng( 35.5289819, 139.6857912);
+                            lastCurrentLocation= new LatLng(latitude, longitude);
 
 
                             // Add a marker in Sydney, Australia, and move the camera.
-                            mMap.addMarker(new MarkerOptions().position(currentLocation).title("CurrentLocation"));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
-                            Log.d("imabayashi", "getLastLocation Listner 2");
+                            mMap.addMarker(new MarkerOptions().position(lastCurrentLocation).title("LastCurrentLocation"));
+                            //以下ズームできるように変更
+//                            mMap.moveCamera(CameraUpdateFactory.newLatLng(LastcurrentLocation));
+                            float zoomLevel = 16.0f;
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(lastCurrentLocation,zoomLevel));
+                            Log.d(TAG, "getLastLocation Listner 2");
                         }
                     }
                 });
-//                            getGeofencingRequest();
-        Toast.makeText(getApplicationContext(),"Geofence", Toast.LENGTH_LONG).show();
-
-
     }
 
 
-    /**
-     *
-     *
-     *
-     *
-     */
-    //ジオフェンスを作成する。
+    //ジオフェンスのオブジェクトを作成する。
     public void makeGeofence() {
         mGeofenceList.add(new Geofence.Builder()
                 // Set the request ID of the geofence. This is a string to identify this
-                // geofence.
-//                .setRequestId(entry.getKey())
-                //ToDo　ひとまず動きたしかめるために１を設定
+                //ToDo　このアプリでは１つしかジオフェンスを設定しないので1固定
                 .setRequestId("1")
-
-                //ToDo 最終的には、最初に設定した現在地情報を保存しておいて、それを呼び出して当てはめるようにする。
+                //ジオフェンスの中心点となる緯度と経度を設定、半径を設定
                 .setCircularRegion(
-//                        latitude,
-                        35.5289819,
-                        139.6857912,
-//                        longtitude,
+                        latitude,
+                        longitude,
                         GEOFENCE_RADIUS_IN_METERS
                 )
                 .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |
-                        Geofence.GEOFENCE_TRANSITION_EXIT)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |Geofence.GEOFENCE_TRANSITION_EXIT)
                 .build());
-                Log.d("imabayashi", String.valueOf(latitude));
-                Log.d("imabayashi", String.valueOf(longtitude));
+    }
 
-        Log.d("imabayashi", "3");
+    //ジオフェンスのオブジェクトを作成する。
+    public void makeGeofence(LatLng latLng) {
+        mGeofenceList.add(new Geofence.Builder()
+                // Set the request ID of the geofence. This is a string to identify this
+                //ToDo　このアプリでは１つしかジオフェンスを設定しないので1固定
+                .setRequestId("1")
+                //ジオフェンスの中心点となる緯度と経度を設定、半径を設定
+                .setCircularRegion(
+                        latLng.latitude,
+                        latLng.longitude,
+                        GEOFENCE_RADIUS_IN_METERS
+                )
+                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER |Geofence.GEOFENCE_TRANSITION_EXIT)
+                .build());
     }
 
 
     private GeofencingRequest getGeofencingRequest() {
-        Log.d("imabayashi","GetGeofencingRequest");
-        Log.d("imabayashi", "4");
+        Log.d(TAG,"GetGeofencingRequest");
+        Log.d(TAG, "4");
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofences(mGeofenceList);
@@ -190,7 +225,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void addGeofences() {
-        Log.d("imabayashi", "addGeofences OK");
+        Log.d(TAG, "addGeofences OK");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -206,19 +241,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private PendingIntent getGeofencePendingIntent() {
-        Log.d("imabayashi","getGeofencePendingIntent");
+        Log.d(TAG,"getGeofencePendingIntent");
         // Reuse the PendingIntent if we already have it.
 
         if (mGeofencePendingIntent != null) {
             return mGeofencePendingIntent;
         }
         Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
-        Log.d("imabayashi","imabayashi 2");
+        Log.d(TAG,"2");
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
         // addGeofences() and removeGeofences().
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
     }
 
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        Log.d(TAG,"longclick");
+        if(marker !=null && circle!=null){
+            marker.remove();
+            circle.remove();
+        }
+        marker = mMap.addMarker(new MarkerOptions().position(latLng).title("GeoFence"));
+        circle = mMap.addCircle(new CircleOptions()
+                .center(latLng)
+                .fillColor(0x5500ff00)
+                .strokeColor(Color.WHITE).radius(GEOFENCE_RADIUS_IN_METERS)
+        );
+        makeGeofence(latLng);
+        addGeofences();
+        Toast.makeText(getApplicationContext(),"Setting new Geofence",Toast.LENGTH_LONG).show();
+    }
 
     @Override
     public void onComplete(@NonNull Task<Void> task) {

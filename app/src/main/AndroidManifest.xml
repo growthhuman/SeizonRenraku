@@ -27,7 +27,6 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        <service android:name=".GeofenceTransitionsIntentService"/>
         </activity>
         <activity android:name=".SettingActivity"></activity>
         <!--
@@ -44,7 +43,9 @@
 
         <activity
             android:name=".MapsActivity"
-            android:label="@string/title_activity_maps"></activity>
+            android:label="@string/title_activity_maps">
+        </activity>
+            <service android:name=".GeofenceTransitionsIntentService"></service>
     </application>
 
 </manifest>
