@@ -17,30 +17,28 @@ public class SettingActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
-
-        setContentView(R.layout.activity_main);
         mToolbar = (Toolbar)findViewById(R.id.action_settings);
-        setSupportActionBar(mToolbar);
+//        setSupportActionBar(mToolbar);
 
-        send_button = (Button)findViewById(R.id.send_button);
-        send_button.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                //ToDo preferenceにデータ貯める
-
-            }
-        });
-
-        mEditText = (EditText) findViewById(R.id.text_current_location);
-        mEditText.setOnClickListener(new View.OnClickListener(){
-
-            @Override
-            public void onClick(View v) {
-                //ToDo キーボードだして操作する。
-
-            }
-        });
+//        send_button = (Button)findViewById(R.id.send_button);
+//        send_button.setOnClickListener(new View.OnClickListener(){
+//
+//            @Override
+//            public void onClick(View v) {
+//                //ToDo preferenceにデータ貯める
+//
+//            }
+//        });
+//
+//        mEditText = (EditText) findViewById(R.id.text_current_location);
+//        mEditText.setOnClickListener(new View.OnClickListener(){
+//
+//            @Override
+//            public void onClick(View v) {
+//                //ToDo キーボードだして操作する。
+//
+//            }
+//        });
 
     }
 }
