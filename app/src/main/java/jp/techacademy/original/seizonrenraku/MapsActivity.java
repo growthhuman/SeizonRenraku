@@ -70,8 +70,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mGeofencePendingIntent = null;
 
-        Log.d("imabayashi", "1");
+
+        Log.d("imabayashi", "onCreate 1");
         getLastLocation();
+        makeGeofence();
+        addGeofences();
 
     }
 
@@ -92,12 +95,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-            Log.d("imabayashi", "OK");
+            Log.d("imabayashi", "onMapReady OK");
         } else {
             // Show rationale and request permission.
             requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_CODE);
             mMap.setMyLocationEnabled(true);
-            Log.d("imabayashi", "NG");
+            Log.d("imabayashi", "onMapReady NG");
         }
 
     }
@@ -105,11 +108,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @RequiresApi(api = Build.VERSION_CODES.M)
     public void getLastLocation() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Log.d("imabayashi", "OK");
+
         } else {
             // Show rationale and request permission.
             requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_CODE);
-            Log.d("imabayashi", "NG");
+            Log.d("imabayashi", "getLastLocation NG");
         }
 
         //最後に持っていた場所を取得して表示する。
@@ -132,13 +135,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             // Add a marker in Sydney, Australia, and move the camera.
                             mMap.addMarker(new MarkerOptions().position(currentLocation).title("CurrentLocation"));
                             mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
-                            Log.d("imabayashi", "2");
+                            Log.d("imabayashi", "getLastLocation Listner 2");
                         }
                     }
                 });
-        setGeofence();
 //                            getGeofencingRequest();
-        addGeofences();
         Toast.makeText(getApplicationContext(),"Geofence", Toast.LENGTH_LONG).show();
 
 
@@ -152,7 +153,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      *
      */
     //ジオフェンスを作成する。
-    public void setGeofence() {
+    public void makeGeofence() {
         mGeofenceList.add(new Geofence.Builder()
                 // Set the request ID of the geofence. This is a string to identify this
                 // geofence.
@@ -180,6 +181,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     private GeofencingRequest getGeofencingRequest() {
+        Log.d("imabayashi","GetGeofencingRequest");
         Log.d("imabayashi", "4");
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
         builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
@@ -188,7 +190,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void addGeofences() {
-
+        Log.d("imabayashi", "addGeofences OK");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -204,13 +206,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private PendingIntent getGeofencePendingIntent() {
+        Log.d("imabayashi","getGeofencePendingIntent");
         // Reuse the PendingIntent if we already have it.
 
         if (mGeofencePendingIntent != null) {
             return mGeofencePendingIntent;
         }
         Intent intent = new Intent(this, GeofenceTransitionsIntentService.class);
-        Log.d("imabayashi","imabayashi2");
+        Log.d("imabayashi","imabayashi 2");
         // We use FLAG_UPDATE_CURRENT so that we get the same pending intent back when calling
         // addGeofences() and removeGeofences().
         return PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
