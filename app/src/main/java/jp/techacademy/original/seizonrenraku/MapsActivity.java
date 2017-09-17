@@ -1,7 +1,9 @@
 package jp.techacademy.original.seizonrenraku;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -36,6 +38,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, OnCompleteListener<Void>, GoogleMap.OnMapLongClickListener {
 
@@ -54,7 +57,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Geofenceの設定 半径は100m
     public static final float GEOFENCE_RADIUS_IN_METERS = 100;
 
-    private static final int PERMISSIONS_REQUEST_CODE_MULTIPLE = 00;
+    private static final int PERMISSIONS_REQUEST_CODE_MULTIPLE = 0;
     private static final int PERMISSIONS_REQUEST_CODE_SMS = 10;
     private static final int PERMISSIONS_REQUEST_CODE = 34;
 
@@ -79,11 +82,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        //---------------------------------------------------------------------------------------
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -122,7 +122,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //GeofencingClientからIntentServiceへリクエスト
                 addGeofences();
-                return;
             } else {
                 // Show rationale and request permission.
                 requestPermissions(new String[]{
@@ -130,7 +129,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 Manifest.permission.SEND_SMS},
                         PERMISSIONS_REQUEST_CODE_MULTIPLE);
                 Log.d(TAG, "getLastLocation NG");
-                return;
             }
         }
     }
@@ -145,6 +143,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
      * it inside the SupportMapFragment. This method will only be triggered once the user has
      * installed Google Play services and returned to the app.
      */
+    //getMapAsyncが呼ばれたらこれ呼ばれる。
     @Override
     public void onMapReady(GoogleMap googleMap) {
         //ここで最初にgoogleMapを生成。Map関連の処理はすべてこの後でやること
@@ -315,29 +314,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SharedPreferences.Editor editor = mPreference.edit();
         editor.putFloat("Latitude", (float) latLng.latitude);
         editor.putFloat("Longitude", (float) latLng.longitude);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
-            editor.apply();
-        }
+        editor.apply();
 
         Log.d(TAG, String.valueOf((float) latLng.latitude));
         Log.d(TAG, String.valueOf((float) latLng.longitude));
 
     }
 
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        Log.d(TAG, "onRequestPermissionResult");
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], int[] grantResults) {
+        Log.d(TAG, "onRequestPermissionResult"+ String.valueOf(requestCode));
+        Log.d(TAG, String.valueOf((grantResults).length));
+//        Log.d(TAG, String.valueOf(grantResults[0]));
         switch (requestCode) {
             case PERMISSIONS_REQUEST_CODE_MULTIPLE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        return;
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED ) {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
+                            new AlertDialog.Builder(this)
+                                    .setTitle("パーミッションの追加説明")
+                                    .setMessage("このアプリでは位置情報とSMSのパーミッションが必要です")
+                                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            finish();
+                                        }
+                                    })
+                                    .create()
+                                    .show();
+                            return;
+                        }
                     }
                     mMap.setMyLocationEnabled(true);
                     Log.d(TAG, "PERMISSIONS_REQUEST_CODE_MULTIPLE許可された");
                 } else {
-
                     Log.d(TAG, "PERMISSIONS_REQUEST_CODE_MULTIPLE許可されなかった");
-
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION);
+                        new AlertDialog.Builder(this)
+                                .setTitle("パーミッションの追加説明")
+                                .setMessage("このアプリでは位置情報とSMSのパーミッションが必要です")
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        finish();
+                                    }
+                                })
+                                .create()
+                                .show();
+                        return;
+                    }
                 }
                 break;
             //ACCESS_FINE_LOCATIONの場合
