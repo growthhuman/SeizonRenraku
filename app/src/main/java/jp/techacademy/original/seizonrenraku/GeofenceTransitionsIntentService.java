@@ -98,7 +98,6 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 Log.d(TAG,"SMS");
                 if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
 //                    MessageClient messageClient = new MessageClient();
-//                    messageClient.sendMessage("09042266532","会社に行きました");
                     //SharedPreferencesクラスのオブジェクトを取得
 
                     mPreference = PreferenceManager.getDefaultSharedPreferences(this);
