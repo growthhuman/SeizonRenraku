@@ -16,7 +16,13 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -40,6 +46,8 @@ import com.google.android.gms.tasks.Task;
 import java.util.ArrayList;
 import java.util.Objects;
 
+//複数箇所にのぼるPermissionの設定箇所を整理する
+//FragmentActivityからAppCompatActivityにするのは副作用、その他マナー的に問題ないか確認する
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, OnCompleteListener<Void>, GoogleMap.OnMapLongClickListener {
 
     private static final String TAG = "MapsActivity";
@@ -76,17 +84,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private PendingIntent mGeofencePendingIntent;
     private Marker marker;
     private Circle circle;
+    private Toolbar mToolbar;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+//        setSupportActionBar(mToolbar);
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        Button setting_button = (Button)findViewById(R.id.setting_button);
+        setting_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(),SettingContactInfoActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        // ナビゲーションドロワーの設定
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer,mToolbar, R.string.app_name, R.string.app_name);
+
 
         //---------------------------------------------------------------------------------------
         //SharedPreferencesクラスのオブジェクトを取得
@@ -305,8 +332,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         marker = mMap.addMarker(new MarkerOptions().position(latLng).title("GeoFence"));
         circle = mMap.addCircle(new CircleOptions()
                 .center(latLng)
-                .fillColor(0x5500ff00)
-                .strokeColor(Color.WHITE).radius(GEOFENCE_RADIUS_IN_METERS)
+                .fillColor(Color.argb(125,77, 198, 255))
+                .strokeColor(Color.argb(255,77, 198, 255))
+                .strokeWidth(5)
+                .radius(GEOFENCE_RADIUS_IN_METERS)
         );
     }
 

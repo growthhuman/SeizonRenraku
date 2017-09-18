@@ -2,7 +2,6 @@ package jp.techacademy.original.seizonrenraku;
 
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -35,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-//                Intent intent = new Intent(getApplicationContext(),SettingActivity.class);
+//                Intent intent = new Intent(getApplicationContext(),SettingContactInfoActivity.class);
                 Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
                 startActivity(intent);
 
@@ -61,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            Intent intent = new Intent(getApplicationContext(), SettingActivity.class);
+            Intent intent = new Intent(getApplicationContext(), SettingContactInfoActivity.class);
             startActivity(intent);
             return true;
         }

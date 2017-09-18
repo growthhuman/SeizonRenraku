@@ -1,5 +1,7 @@
 package jp.techacademy.original.seizonrenraku;
 
+//exitとenterで出力文言をわける
+
 import android.*;
 import android.app.Activity;
 import android.app.IntentService;
@@ -10,10 +12,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -39,6 +43,9 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
     private static final String TAG = "GeofenceTransitionsIS";
     private static final int PERMISSIONS_REQUEST_CODE = 100;
+
+    //Preferenceの変数
+    private SharedPreferences mPreference;
 
     /**
      * This constructor is required, and calls the super IntentService(String)
@@ -92,7 +99,11 @@ public class GeofenceTransitionsIntentService extends IntentService {
                 if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
 //                    MessageClient messageClient = new MessageClient();
 //                    messageClient.sendMessage("09042266532","会社に行きました");
-                    sendSMS("09042266532", "会社に行きました。");
+                    //SharedPreferencesクラスのオブジェクトを取得
+
+                    mPreference = PreferenceManager.getDefaultSharedPreferences(this);
+
+                    sendSMS(mPreference.getString("mtext_contact_info",""), "会社に行きました。");
                     Log.d(TAG,"SMS");
                 }else {
 

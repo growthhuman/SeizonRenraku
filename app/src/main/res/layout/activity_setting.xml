@@ -1,21 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout  xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="jp.techacademy.original.seizonrenraku.SettingActivity">
+    tools:context="jp.techacademy.original.seizonrenraku.SettingContactInfoActivity"
+    android:orientation="vertical">
 
     <EditText
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/text_current_location"
-        android:hint="現在地を入力" />
+        android:id="@+id/text_contact_info"
+        android:hint="連絡先電話番号を入力" />
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/send_button"
-        android:text="送信"/>
+        android:id="@+id/save_button"
+        android:text="保存"/>
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout >

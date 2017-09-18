@@ -13,6 +13,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ジャンル選択"/>
+        android:textColor="#FFFFFF"
+        android:text="連絡方法選択"/>
 
 </LinearLayout>
