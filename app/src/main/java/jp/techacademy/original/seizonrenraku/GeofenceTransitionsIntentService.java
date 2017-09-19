@@ -90,9 +90,6 @@ public class GeofenceTransitionsIntentService extends IntentService {
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geofenceTransition,
                     triggeringGeofences);
 
-            // Send notification and log the transition details.
-            sendNotification(geofenceTransitionDetails);
-            Log.i(TAG, geofenceTransitionDetails);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 Log.d(TAG,"SMS");
@@ -102,13 +99,16 @@ public class GeofenceTransitionsIntentService extends IntentService {
 
                     mPreference = PreferenceManager.getDefaultSharedPreferences(this);
 
-                    sendSMS(mPreference.getString("mtext_contact_info",""), "会社に行きました。");
+                    sendSMS(mPreference.getString("mtext_contact_info",""),mPreference.getString("mtext_message_exit",""));
                     Log.d(TAG,"SMS");
                 }else {
 
                 }
             }
 
+            // Send notification and log the transition details.
+            sendNotification(geofenceTransitionDetails);
+            Log.i(TAG, geofenceTransitionDetails);
             Toast.makeText(getApplication(),geofenceTransitionDetails,LENGTH_LONG).show();
         } else {
             // Log the error.

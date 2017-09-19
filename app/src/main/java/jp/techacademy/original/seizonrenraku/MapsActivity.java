@@ -3,6 +3,7 @@ package jp.techacademy.original.seizonrenraku;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -48,7 +49,7 @@ import java.util.Objects;
 
 //複数箇所にのぼるPermissionの設定箇所を整理する
 //FragmentActivityからAppCompatActivityにするのは副作用、その他マナー的に問題ないか確認する
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, OnCompleteListener<Void>, GoogleMap.OnMapLongClickListener {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, OnCompleteListener<Void>, GoogleMap.OnMapLongClickListener {
 
     private static final String TAG = "MapsActivity";
     //Preferenceの変数
@@ -93,7 +94,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         setContentView(R.layout.activity_maps);
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(mToolbar);
+        setSupportActionBar(mToolbar);
+//        getActionBar().setTitle("aa");
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -112,7 +114,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // ナビゲーションドロワーの設定
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-//        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer,mToolbar, R.string.app_name, R.string.app_name);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer,mToolbar, R.string.app_name, R.string.app_name);
+//        toggle.setDrawerIndicatorEnabled(true);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+
 
 
         //---------------------------------------------------------------------------------------

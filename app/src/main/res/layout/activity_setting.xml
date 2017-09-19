@@ -10,8 +10,23 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:inputType="number"
         android:id="@+id/text_contact_info"
         android:hint="連絡先電話番号を入力" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:id="@+id/text_message_exit"
+        android:hint="Geofenceから出た際のメッセージを入力" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:id="@+id/text_message_enter"
+        android:hint="Geofenceに入った際のメッセージを入力" />
 
     <Button
         android:layout_width="match_parent"

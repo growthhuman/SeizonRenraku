@@ -17,11 +17,13 @@ public class SettingContactInfoActivity extends AppCompatActivity {
     //Preferenceの変数
     private SharedPreferences mPreference;
 
-    private Toolbar mToolbar;
     private Button save_button;
-    private EditText mEditText;
     private EditText text_contact_info;
     private String mtext_contact_info;
+    private EditText text_message_exit;
+    private String mtext_message_exit;
+    private EditText text_message_enter;
+    private String mtext_message_enter;
 
 
     @Override
@@ -34,7 +36,7 @@ public class SettingContactInfoActivity extends AppCompatActivity {
         mPreference = PreferenceManager.getDefaultSharedPreferences(this);
 
         //Geofenceの経度と緯度をPreferenceから取得する。
-        mtext_contact_info =mPreference.getString("mtext_contact_info","def");
+        mtext_contact_info =mPreference.getString("mtext_contact_info","");
 
         text_contact_info = (EditText)findViewById(R.id.text_contact_info);
         text_contact_info.setText(mtext_contact_info);
@@ -44,6 +46,26 @@ public class SettingContactInfoActivity extends AppCompatActivity {
              }
          });
 
+        //Geofenceのから出た際のメッセージをPreferenceから取得する。
+        mtext_message_exit =mPreference.getString("mtext_message_exit","");
+        text_message_exit = (EditText)findViewById(R.id.text_message_exit);
+        text_message_exit.setText(mtext_message_exit);
+        text_message_exit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
+
+        //Geofenceに入った際のメッセージをPreferenceから取得する。
+        mtext_message_enter =mPreference.getString("mtext_message_enter","");
+        text_message_enter = (EditText)findViewById(R.id.text_message_enter);
+        text_message_enter.setText(mtext_message_enter);
+        text_message_enter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            }
+        });
+
         save_button = (Button)findViewById(R.id.save_button);
         save_button.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -51,6 +73,8 @@ public class SettingContactInfoActivity extends AppCompatActivity {
                 //ToDo preferenceにデータ保存する
                 SharedPreferences.Editor editor = mPreference.edit();
                 editor.putString("mtext_contact_info", String.valueOf(text_contact_info.getText()));
+                editor.putString("mtext_message_exit", String.valueOf(text_message_exit.getText()));
+                editor.putString("mtext_message_enter", String.valueOf(text_message_enter.getText()));
                 editor.apply();
                 Toast.makeText(getApplicationContext(),"保存したよ",LENGTH_LONG).show();
             }
